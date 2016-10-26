@@ -97,5 +97,10 @@ namespace SinaService.SinaServiceHelper
         {
             return await Provider.LoginAsync();
         }
+
+        public async void GetUserAsync()
+        {
+
+        }
     }
 }

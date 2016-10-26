@@ -1,11 +1,14 @@
 ﻿using SinaService.SinaServiceHelper;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -38,8 +41,24 @@ namespace SinaService
             SinaServiceHelper.SinaService.Instance.Initialize("767169950", "9a712310df02a0d481efd210b3cd44e8", "https://api.weibo.com/oauth2/default.html");
             if(!await SinaService.SinaServiceHelper.SinaService.Instance.LoginAsync())
             {
-                //TODO
+                var error = new MessageDialog("Unable to log to Sina");
+                await error.ShowAsync();
+                return;
             }
+
+            //TODO 获取用户信息
+            SinaServiceHelper.SinaService.Instance.GetUserAsync();
+             
+
+        }
+
+        private async void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            string url = "https://api.weibo.com/2/statuses/user_timeline.json?access_token=2.004hKTOD0swxup0a1276a3da0VXm1B";
+            HttpClient client = new HttpClient();
+            var response=await client.GetAsync(new Uri(url));
+           string result= await response.Content.ReadAsStringAsync();
+            Debug.WriteLine(result);
         }
     }
 }

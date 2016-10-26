@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Windows.Security.Authentication.Web;
 using Windows.Security.Credentials;
 using Windows.Storage;
+using Windows.UI.Popups;
 
 namespace SinaService.SinaServiceHelper
 {
@@ -35,16 +36,24 @@ namespace SinaService.SinaServiceHelper
             vault = new PasswordVault();
         }
 
-        //
+        // 密码存储access_token
         private PasswordCredential PasswordCredential
         {
             get
             {
                 // Password vault remains when app is uninstalled so checking the local settings value
-                if (ApplicationData.Current.LocalSettings.Values["SinaScreenName"] == null)
+                if (ApplicationData.Current.LocalSettings.Values["Sina_expires_in"] == null)
                 {
                     return null;
                 }
+
+                string time = ApplicationData.Current.LocalSettings.Values["Sina_expires_in"].ToString();
+                int expires = Int32.Parse(time);
+                if (expires <= 0)
+                {
+                    return null;
+                }
+
                 var passwordCredentials = vault.RetrieveAll();
                 var temp = passwordCredentials.FirstOrDefault(c => c.Resource == "SinaAccessToken");
                 if (temp == null)
@@ -57,6 +66,7 @@ namespace SinaService.SinaServiceHelper
 
         /// <summary>
         /// log user in to sina
+        /// 判断是否登录
         /// </summary>
         /// <returns>Boolean indicating login success</returns>
         public async Task<bool> LoginAsync()
@@ -67,121 +77,127 @@ namespace SinaService.SinaServiceHelper
             if (sinaCredentials != null)
             {
                 tokens.AccessToken = sinaCredentials.UserName;
-                //TODO
+                tokens.uid = sinaCredentials.Password;
+                LoggedIn = true;
                 return true;
             }
-            //TODO 
-            //if (!await InitializeRequestAccessTokens(tokens.AppKey, tokens.CallbackUri))
-            //{
-            //    LoggedIn = false;
-            //    return false;
-            //}
-            string requestToken = tokens.RequestToken;
-            //TODO
+
+
             var sinaUrl = "https://api.weibo.com/oauth2/authorize";
             sinaUrl += "?" + "client_id=" + tokens.AppKey + "&redirect_uri=" + Uri.EscapeDataString(tokens.CallbackUri);
             Uri sinaUri = new Uri(sinaUrl);
-            var result = await WebAuthenticationBroker.AuthenticateAsync(WebAuthenticationOptions.None, sinaUri, new Uri(tokens.CallbackUri));
+            WebAuthenticationResult result = await WebAuthenticationBroker.AuthenticateAsync(WebAuthenticationOptions.None, sinaUri, new Uri(tokens.CallbackUri));
+
             Debug.WriteLine(result.ResponseData.ToString());
             //https://api.weibo.com/oauth2/default.html?code=b8173b67d65c0377b2cbb5085a920e8e
+
             switch (result.ResponseStatus)
             {
                 case WebAuthenticationStatus.Success:
                     LoggedIn = true;
-                    string responseData = result.ResponseData;
-                    string codeData = responseData.Substring(responseData.IndexOf("code"));
-                    string[] splits = codeData.Split('=');
-                    string code = splits[1];
-                    Debug.WriteLine(code);
-                    //https://api.weibo.com/oauth2/access_token?client_id=YOUR_CLIENT_ID&client_secret=YOUR_CLIENT_SECRET&grant_type=authorization_code&redirect_uri=YOUR_REGISTERED_REDIRECT_URI&code=CODE
-                    //string url ="https://api.weibo.com/oauth2/access_token?client_id="+ tokens.AppKey +"&client_secret="+ tokens.AppSecret +"&grant_type=authorization_code&redirect_uri="+ tokens.CallbackUri +"&code="+code;
-                    string url = "https://api.weibo.com/oauth2/access_token";
-                    Debug.WriteLine(url);
-
-                    string HeaderParams = "client_id =\"" + tokens.AppKey + "\",client_secret =\"" + tokens.AppSecret + "\", grant_type =\"+authorization_code+\" ,redirect_uri =\"" + tokens.CallbackUri + "\",code = " + code + "\"";
-
-                    using (var client = new HttpClient())
-                    {
-                        var values = new Dictionary<string, string> 
-
-                         {
-                             { "client_id", tokens.AppKey },
-                             { "client_secret",tokens.AppSecret},
-                            { "grant_type", "authorization_code" },
-                             { "redirect_uri",tokens.CallbackUri },
-                            { "code",code }
-                         };
-
-                        var content = new FormUrlEncodedContent(values);
-
-                        var response = await client.PostAsync(url, content);
-
-                        var responseString = await response.Content.ReadAsStringAsync();
-                        //"access_token":"2.004hKTOD0swxup0a1276a3da0VXm1B","remind_in":"157679999","expires_in":157679999,"uid":"2962219841"
-                        Debug.WriteLine(responseString);
-                    }
-
-                    //HttpClientHandler handler = new HttpClientHandler();
-                    //if (handler.SupportsAutomaticDecompression)
-                    //{
-                    //    handler.AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate;
-                    //}
-                    //using (HttpClient httpClient = new HttpClient(handler))
-                    //{
-                    //    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("OAuth", HeaderParams);
-
-                    //    string getResponse = await httpClient.PostAsync(new Uri(url), new StringContent(System.Text.Encoding.UTF8));
-                    //        Debug.WriteLine(getResponse);
-
-                    //}
-
-
-                    //HttpClient client = new HttpClient();
-                    //try
-                    //{
-                    //string accessToken=await client.GetStringAsync(url);
-                    //Debug.WriteLine(accessToken);
-                    //}
-                    //catch(HttpRequestException e)
-                    //{
-                    //    Debug.WriteLine(e.Message);
-                    //}
+                    await GetAccessTokenAsync(result);
+                    return true;
+                case WebAuthenticationStatus.UserCancel:
+                    //TODO 对用户取消进行处理
+                    LoggedIn = false;
                     return false;
-
-
-
+                case WebAuthenticationStatus.ErrorHttp:
+                    LoggedIn = false;
+                    return false;
             }
             return true;
         }
 
-        //提取code
 
-        //private async Task<bool> InitializeRequestAccessTokens(string AppKey, string callbackUrl)
-        //{
-        //    var sinaUrl = "https://api.weibo.com/oauth2/authorize";
-        //    sinaUrl += "?" + "client_id=" + AppKey + "&redirect_uri=" + Uri.EscapeDataString(callbackUrl);
-        //    string getResponse;
-        //    var handler = new HttpClientHandler();
-        //    if (handler.SupportsAutomaticDecompression)
-        //    {
-        //        handler.AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate;
-        //    }
-        //    using (HttpClient httpClient = new HttpClient(handler))
-        //    {
-        //        try
-        //        {
-        //            getResponse = await httpClient.GetStringAsync(new Uri(sinaUrl));
-        //        }
-        //        catch (HttpRequestException e)
-        //        {
-        //            Debug.WriteLine(e.Message);
-        //            return false;
-        //        }
-        //    }
 
-        //    string[] keyValPairs = getResponse.Split('&');
-        //    //TODO
-        //    return true;
-        //}
+        /// <summary>
+        /// 获取Access_token
+        /// </summary>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        private async Task<bool> GetAccessTokenAsync(WebAuthenticationResult result)
+        {
+            string responseData = result.ResponseData;
+            string codeData = responseData.Substring(responseData.IndexOf("code"));
+            string[] splits = codeData.Split('=');
+            string code = splits[1];
+            Debug.WriteLine(code);
+            string url = "https://api.weibo.com/oauth2/access_token";
+            Debug.WriteLine(url);
+
+
+            using (var client = new HttpClient())
+            {
+                var values = new Dictionary<string, string>
+                         {
+                             { "client_id", tokens.AppKey },
+                             { "client_secret",tokens.AppSecret},
+                             { "grant_type", "authorization_code" },
+                             { "redirect_uri",tokens.CallbackUri },
+                             { "code",code }
+                         };
+
+                var content = new FormUrlEncodedContent(values);
+
+                var response = await client.PostAsync(url, content);
+                if (response.IsSuccessStatusCode)
+                {
+
+                    var responseString = await response.Content.ReadAsStringAsync();
+                    string respnseResult = FixInvalidCharset(responseString);
+                    string access_token = ExtractMessageFromResponse(respnseResult, "access_token");
+                    string expires_in = ExtractMessageFromResponse(respnseResult, "expires_in");
+                    string uid = ExtractMessageFromResponse(respnseResult, "uid");
+
+                    tokens.AccessToken = access_token;
+                    tokens.expires_in = expires_in;
+                    tokens.uid = uid;
+
+                    var passwordCredential = new PasswordCredential("SinaAccessToken", access_token, uid);
+                    ApplicationData.Current.LocalSettings.Values["Sina_expires_in"] = expires_in;
+                    vault.Add(passwordCredential);
+                    return true;
+                }
+                else
+                {
+                    await new MessageDialog("there is an exception in post a access_token").ShowAsync();
+                    return false;
+                }
+            }
+        }
+
+        //获取需要的字符串
+        private string ExtractMessageFromResponse(string response, string message)
+        {
+            if (response != null)
+            {
+                string codeData = response.Substring(response.IndexOf(message));
+                string[] splits = codeData.Split(',');
+
+                string[] pairs = splits[0].Split(':');
+                return pairs[1];
+            }
+            return string.Empty;
+        }
+
+        //去除无效的符号
+        private string FixInvalidCharset(string text)
+        {
+            // Fix invalid charset returned by some web sites.
+            if (text.Contains("\""))
+            {
+                text = text.Replace("\"", string.Empty);
+            }
+            if (text.Contains("{"))
+            {
+                text = text.Replace("{", string.Empty);
+            }
+            if (text.Contains("}"))
+            {
+                text = text.Replace("}", string.Empty);
+            }
+            return text;
+        }
+
     }
 }
