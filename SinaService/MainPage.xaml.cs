@@ -115,14 +115,19 @@ namespace SinaService
             openPicker.FileTypeFilter.Add(".png");
             var file = await openPicker.PickSingleFileAsync();
 
-            if (!await Tools.CheckInternetConnection())
-            {
-                await new MessageDialog("Unable to connect to Internet").ShowAsync();
-                return;
-            }
-
             if (file != null & Content.Text != null)
             {
+                using (IRandomAccessStream stream = await file.OpenReadAsync())
+                {
+                    BitmapImage image = new BitmapImage();
+                    await image.SetSourceAsync(stream);
+                    Image1.Source = image;
+                }
+                if (!await Tools.CheckInternetConnection())
+                {
+                    await new MessageDialog("Unable to connect to Internet").ShowAsync();
+                    return;
+                }
                 bool response = await SinaServiceHelper.SinaService.Instance.ShareStatusWithPicture(Content.Text, file);
                 if (response)
                 {
