@@ -98,8 +98,11 @@
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Model\SinaUser.cs" />
+    <Compile Include="Model\UserStatus.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SinaServiceHelper\ConnectionHelper.cs" />
+    <Compile Include="SinaServiceHelper\HttpRequest.cs" />
     <Compile Include="SinaServiceHelper\SinaDataProvider.cs" />
     <Compile Include="SinaServiceHelper\SinaOAuthTokens.cs" />
     <Compile Include="SinaServiceHelper\SinaService.cs" />
@@ -112,6 +115,7 @@
     <None Include="SinaService_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Assets\Sina.jpg" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\SplashScreen.scale-200.png" />

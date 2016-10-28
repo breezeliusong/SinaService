@@ -1,8 +1,10 @@
-﻿using System;
+﻿using SinaService.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.Storage.Streams;
 
 namespace SinaService.SinaServiceHelper
 {
@@ -57,6 +59,7 @@ namespace SinaService.SinaServiceHelper
 
 
 
+
         public bool Initialize(string AppKey,String AppSecret,string callBackUri)
         {
             if (string.IsNullOrEmpty(AppKey))
@@ -98,9 +101,46 @@ namespace SinaService.SinaServiceHelper
             return await Provider.LoginAsync();
         }
 
-        public async void GetUserAsync()
+        //获取用户信息
+        public async Task<SinaUser> GetUserAsync(string uid=null)
         {
+            if (Provider.LoggedIn)
+            {
+            return await Provider.GetUserAsync(tokens.uid);
+            }
+            var isLoggedIn = await LoginAsync();
+            if (isLoggedIn)
+            {
+                return await GetUserAsync(tokens.uid);
+            }
+            return null;
+        }
 
+        //获得用户发布的状态
+        public async Task<UserStatus> GetUserTimeLineAsync()
+        {
+            if (Provider.LoggedIn)
+            {
+                return await Provider.GetUserTimeLineAsync();
+            }
+            if(await LoginAsync())
+            {
+                return await GetUserTimeLineAsync();
+            }
+            return null;
+        }
+
+        public async Task<bool> ShareStatusAsync(string text)
+        {
+            if (Provider.LoggedIn)
+            {
+                return await Provider.ShareStatusAsync(text);
+            }
+            if (await LoginAsync())
+            {
+                return await ShareStatusAsync(text);
+            }
+            return false;
         }
     }
 }

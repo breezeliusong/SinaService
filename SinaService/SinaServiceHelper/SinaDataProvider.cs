@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using SinaService.Model;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -27,6 +29,8 @@ namespace SinaService.SinaServiceHelper
         /// The contents of the locker are specific to the app or service. Apps and services don't have access to credentials associated with other apps or services.
         /// </summary>
         private readonly PasswordVault vault;
+
+        public string UserUid { get; set; }
 
         public bool LoggedIn { get; private set; }
 
@@ -94,8 +98,8 @@ namespace SinaService.SinaServiceHelper
             switch (result.ResponseStatus)
             {
                 case WebAuthenticationStatus.Success:
-                    LoggedIn = true;
                     await GetAccessTokenAsync(result);
+                    LoggedIn = true;
                     return true;
                 case WebAuthenticationStatus.UserCancel:
                     //TODO 对用户取消进行处理
@@ -153,6 +157,7 @@ namespace SinaService.SinaServiceHelper
                     tokens.expires_in = expires_in;
                     tokens.uid = uid;
 
+                    //将需要的信息存储到本地
                     var passwordCredential = new PasswordCredential("SinaAccessToken", access_token, uid);
                     ApplicationData.Current.LocalSettings.Values["Sina_expires_in"] = expires_in;
                     vault.Add(passwordCredential);
@@ -164,6 +169,47 @@ namespace SinaService.SinaServiceHelper
                     return false;
                 }
             }
+        }
+
+        //发布一条微博（无图片）
+        public async Task<bool> ShareStatusAsync(string text)
+        {
+            bool result = false;
+            using (var client = new HttpClient())
+            {
+                var values = new Dictionary<string, string>
+                         {
+                             { "access_token", tokens.AccessToken },
+                             { "status",Uri.EscapeDataString(text)},
+                         };
+                var content = new FormUrlEncodedContent(values);
+                var response = await client.PostAsync("https://api.weibo.com/2/statuses/update.json", content);
+                result = response.IsSuccessStatusCode;
+            }
+            return result;
+        }
+
+        //获取用户状态
+        public async Task<UserStatus> GetUserTimeLineAsync()
+        {
+            string url = "https://api.weibo.com/2/statuses/user_timeline.json?access_token=" + tokens.AccessToken;
+            var status= await getMessage<UserStatus>(url);
+            return status;
+        }
+
+        //获取用户信息
+        public async Task<SinaUser> GetUserAsync(string uid=null)
+        {
+            var UserUid = uid ?? tokens.uid;
+            string url = "https://api.weibo.com/2/users/show.json?uid=" + UserUid+ "&access_token="+tokens.AccessToken;
+            string result=await HttpRequest.SendGetRequest(url);
+            return JsonConvert.DeserializeObject<SinaUser>(result);
+        }
+
+        private async Task<T> getMessage<T>(string url)
+        {
+            string result = await HttpRequest.SendGetRequest(url);
+            return JsonConvert.DeserializeObject<T>(result);
         }
 
         //获取需要的字符串
@@ -198,6 +244,22 @@ namespace SinaService.SinaServiceHelper
             }
             return text;
         }
+
+
+        //HttpClient httpClient = new HttpClient();
+        //MultipartFormDataContent form = new MultipartFormDataContent();
+
+        //form.Add(new StringContent(username), "username");
+        //form.Add(new StringContent(useremail), "email");
+        //form.Add(new StringContent(password), "password");
+        //form.Add(new StringContent(usertype), "user_type");
+        //form.Add(new StringContent(subjects), "subjects");
+        //form.Add(new ByteArrayContent(imagebytearraystring, 0, imagebytearraystring.Count()), "profile_pic", "hello1.jpg");
+        //HttpResponseMessage response = await httpClient.PostAsync("PostUrl", form);
+
+        //response.EnsureSuccessStatusCode();
+        //httpClient.Dispose();
+        //string sd = response.Content.ReadAsStringAsync().Result;
 
     }
 }
