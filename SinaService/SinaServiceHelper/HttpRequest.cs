@@ -23,8 +23,10 @@ namespace SinaService.SinaServiceHelper
                 HttpClient client = new HttpClient();
                 Uri uri = new Uri(url);
 
+                //TODO
                 HttpResponseMessage response = await client.GetAsync(uri);
-                response.EnsureSuccessStatusCode();
+                bool stat = response.IsSuccessStatusCode;
+                //response.EnsureSuccessStatusCode();
 
                 return await response.Content.ReadAsStringAsync();
             }

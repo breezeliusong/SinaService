@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.Storage;
 using Windows.Storage.Streams;
 
 namespace SinaService.SinaServiceHelper
@@ -139,6 +140,19 @@ namespace SinaService.SinaServiceHelper
             if (await LoginAsync())
             {
                 return await ShareStatusAsync(text);
+            }
+            return false;
+        }
+
+        public async Task<bool> ShareStatusWithPicture(string text,StorageFile file)
+        {
+            if (Provider.LoggedIn)
+            {
+                return await Provider.ShareStatusWithPicture(text,file);
+            }
+            if (await LoginAsync())
+            {
+                return await ShareStatusWithPicture(text,file);
             }
             return false;
         }

@@ -12,6 +12,7 @@ using Windows.Security.Authentication.Web;
 using Windows.Security.Credentials;
 using Windows.Storage;
 using Windows.UI.Popups;
+using Windows.Web.Http;
 
 namespace SinaService.SinaServiceHelper
 {
@@ -88,7 +89,7 @@ namespace SinaService.SinaServiceHelper
 
 
             var sinaUrl = "https://api.weibo.com/oauth2/authorize";
-            sinaUrl += "?" + "client_id=" + tokens.AppKey + "&redirect_uri=" + Uri.EscapeDataString(tokens.CallbackUri);
+            sinaUrl += "?" + "client_id=" + tokens.AppKey + "&redirect_uri=" + Uri.EscapeDataString(tokens.CallbackUri)+ "&forcelogin=true";
             Uri sinaUri = new Uri(sinaUrl);
             WebAuthenticationResult result = await WebAuthenticationBroker.AuthenticateAsync(WebAuthenticationOptions.None, sinaUri, new Uri(tokens.CallbackUri));
 
@@ -130,7 +131,7 @@ namespace SinaService.SinaServiceHelper
             Debug.WriteLine(url);
 
 
-            using (var client = new HttpClient())
+            using (var client = new System.Net.Http.HttpClient())
             {
                 var values = new Dictionary<string, string>
                          {
@@ -175,7 +176,7 @@ namespace SinaService.SinaServiceHelper
         public async Task<bool> ShareStatusAsync(string text)
         {
             bool result = false;
-            using (var client = new HttpClient())
+            using (var client = new System.Net.Http.HttpClient())
             {
                 var values = new Dictionary<string, string>
                          {
@@ -245,6 +246,21 @@ namespace SinaService.SinaServiceHelper
             return text;
         }
 
+        public async Task<bool> ShareStatusWithPicture(string text,StorageFile file)
+        {
+            Windows.Web.Http.HttpClient client = new Windows.Web.Http.HttpClient();
+            var fileContent = new HttpStreamContent(await file.OpenAsync(FileAccessMode.Read));
+            fileContent.Headers.Add("Content-Type", "multipart/form-data");
+            Debug.Write(fileContent.Headers.ContentType.ToString());
+            var content = new HttpMultipartFormDataContent();
+            Uri uri = new Uri("https://upload.api.weibo.com/2/statuses/upload.json");
+            content.Add(fileContent, "pic", file.Name);
+            content.Add(new HttpStringContent(tokens.AccessToken), "access_token");
+            content.Add(new HttpStringContent(Uri.EscapeDataString(text)), "status");
+            Windows.Web.Http.HttpResponseMessage msg = await client.PostAsync(uri, content);
+            client.Dispose();
+            return msg.IsSuccessStatusCode;
+        }
 
         //HttpClient httpClient = new HttpClient();
         //MultipartFormDataContent form = new MultipartFormDataContent();
