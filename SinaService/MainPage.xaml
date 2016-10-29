@@ -22,9 +22,8 @@
                    />
             <TextBlock Name="Description" 
                        RelativePanel.AlignHorizontalCenterWithPanel="True"
-                       TextWrapping="Wrap"  Text="{Binding description}" 
+                       TextWrapping="WrapWholeWords"  Text="{Binding description}" 
                        FontSize="15"
-                       Width="{Binding ActualWidth,ElementName=RootGrid }"
                        RelativePanel.Below="Logo"/>
         </RelativePanel>
         <ScrollViewer Grid.Row="1" Background="AliceBlue">

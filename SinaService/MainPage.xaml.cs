@@ -87,7 +87,7 @@ namespace SinaService
             {
                 status.Add(st);
             }
-            this.DataContext = status;
+            StatusListView.DataContext = status;
         }
 
         //分享一条微博

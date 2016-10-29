@@ -181,7 +181,7 @@ namespace SinaService.SinaServiceHelper
                 var values = new Dictionary<string, string>
                          {
                              { "access_token", tokens.AccessToken },
-                             { "status",Uri.EscapeDataString(text)},
+                             { "status",text},
                          };
                 var content = new FormUrlEncodedContent(values);
                 var response = await client.PostAsync("https://api.weibo.com/2/statuses/update.json", content);
