@@ -14,5 +14,6 @@ namespace SinaService.SinaServiceHelper
         public string AccessToken { get; set; }
         public string uid { get; set; }
         public string expires_in { get; set; }
+        public bool isValid { get; set; }
     }
 }

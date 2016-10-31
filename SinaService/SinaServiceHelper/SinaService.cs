@@ -25,7 +25,6 @@ namespace SinaService.SinaServiceHelper
                 {
                     throw new InvalidOperationException("Provider not initialized.");
                 }
-
                 return sinaDataProvider ?? (sinaDataProvider = new SinaDataProvider(tokens));
             }
         }
@@ -61,7 +60,7 @@ namespace SinaService.SinaServiceHelper
 
 
 
-        public bool Initialize(string AppKey,String AppSecret,string callBackUri)
+        public bool Initialize(string AppKey,string AppSecret,string callBackUri)
         {
             if (string.IsNullOrEmpty(AppKey))
             {
@@ -75,6 +74,7 @@ namespace SinaService.SinaServiceHelper
             {
                 throw new ArgumentNullException(nameof(callBackUri));
             }
+
             var oAuthTokens = new SinaOAuthTokens
             {
                 AppKey = AppKey,

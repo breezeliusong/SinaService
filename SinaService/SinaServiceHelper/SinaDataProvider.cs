@@ -25,11 +25,10 @@ namespace SinaService.SinaServiceHelper
 
         /// <summary>
         /// Password vault used to store access tokens
-        /// 
         /// Represents a Credential Locker of credentials. 
         /// The contents of the locker are specific to the app or service. Apps and services don't have access to credentials associated with other apps or services.
         /// </summary>
-        private readonly PasswordVault vault;
+        //private readonly PasswordVault vault;
 
         public string UserUid { get; set; }
 
@@ -38,36 +37,8 @@ namespace SinaService.SinaServiceHelper
         public SinaDataProvider(SinaOAuthTokens tokens)
         {
             this.tokens = tokens;
-            vault = new PasswordVault();
         }
-
-        // 密码存储access_token
-        private PasswordCredential PasswordCredential
-        {
-            get
-            {
-                // Password vault remains when app is uninstalled so checking the local settings value
-                if (ApplicationData.Current.LocalSettings.Values["Sina_expires_in"] == null)
-                {
-                    return null;
-                }
-
-                string time = ApplicationData.Current.LocalSettings.Values["Sina_expires_in"].ToString();
-                int expires = Int32.Parse(time);
-                if (expires <= 0)
-                {
-                    return null;
-                }
-
-                var passwordCredentials = vault.RetrieveAll();
-                var temp = passwordCredentials.FirstOrDefault(c => c.Resource == "SinaAccessToken");
-                if (temp == null)
-                {
-                    return null;
-                }
-                return vault.Retrieve(temp.Resource, temp.UserName);
-            }
-        }
+        private ApplicationDataContainer settings = ApplicationData.Current.LocalSettings;
 
         /// <summary>
         /// log user in to sina
@@ -76,20 +47,21 @@ namespace SinaService.SinaServiceHelper
         /// <returns>Boolean indicating login success</returns>
         public async Task<bool> LoginAsync()
         {
-            //不直接对PasswordCredential 属性进行操作，而是传给一个局部变量，保证数据安全正确
-            var sinaCredentials = PasswordCredential;
             //非第一次获取token，直接将第一次授权获取存储到本地的token传入
-            if (sinaCredentials != null)
+            if (settings.Values["app_key"]!=null )
             {
-                tokens.AccessToken = sinaCredentials.UserName;
-                tokens.uid = sinaCredentials.Password;
-                LoggedIn = true;
-                return true;
+                if (settings.Values["app_key"].ToString() == tokens.AppKey&&settings.Values["access_token"] != null)
+                {
+                    tokens.AccessToken = settings.Values["access_token"].ToString();
+                    tokens.uid = ApplicationData.Current.LocalSettings.Values["SinaUid"].ToString();
+                    LoggedIn = true;
+                    return true;
+                }
             }
 
 
             var sinaUrl = "https://api.weibo.com/oauth2/authorize";
-            sinaUrl += "?" + "client_id=" + tokens.AppKey + "&redirect_uri=" + Uri.EscapeDataString(tokens.CallbackUri)+ "&forcelogin=true";
+            sinaUrl += "?" + "client_id=" + tokens.AppKey + "&redirect_uri=" + Uri.EscapeDataString(tokens.CallbackUri) + "&forcelogin=true";
             Uri sinaUri = new Uri(sinaUrl);
             WebAuthenticationResult result = await WebAuthenticationBroker.AuthenticateAsync(WebAuthenticationOptions.None, sinaUri, new Uri(tokens.CallbackUri));
 
@@ -155,13 +127,11 @@ namespace SinaService.SinaServiceHelper
                     string uid = ExtractMessageFromResponse(respnseResult, "uid");
 
                     tokens.AccessToken = access_token;
-                    tokens.expires_in = expires_in;
                     tokens.uid = uid;
 
-                    //将需要的信息存储到本地
-                    var passwordCredential = new PasswordCredential("SinaAccessToken", access_token, uid);
-                    ApplicationData.Current.LocalSettings.Values["Sina_expires_in"] = expires_in;
-                    vault.Add(passwordCredential);
+                    ApplicationData.Current.LocalSettings.Values["access_token"] = access_token;
+                    ApplicationData.Current.LocalSettings.Values["SinaUid"] = uid;//2962219841
+                    settings.Values["app_key"] = tokens.AppKey;
                     return true;
                 }
                 else
@@ -194,22 +164,23 @@ namespace SinaService.SinaServiceHelper
         public async Task<UserStatus> GetUserTimeLineAsync()
         {
             string url = "https://api.weibo.com/2/statuses/user_timeline.json?access_token=" + tokens.AccessToken;
-            var status= await getMessage<UserStatus>(url);
+            var status = await getMessage<UserStatus>(url);
             return status;
         }
 
         //获取用户信息
-        public async Task<SinaUser> GetUserAsync(string uid=null)
+        public async Task<SinaUser> GetUserAsync(string uid = null)
         {
             var UserUid = uid ?? tokens.uid;
-            string url = "https://api.weibo.com/2/users/show.json?uid=" + UserUid+ "&access_token="+tokens.AccessToken;
-            string result=await HttpRequest.SendGetRequest(url);
+            string url = "https://api.weibo.com/2/users/show.json?uid=" + UserUid + "&access_token=" + tokens.AccessToken;
+            string result = await HttpRequest.SendGetRequest(url);
             return JsonConvert.DeserializeObject<SinaUser>(result);
         }
 
         private async Task<T> getMessage<T>(string url)
         {
             string result = await HttpRequest.SendGetRequest(url);
+            Debug.Write(result);
             return JsonConvert.DeserializeObject<T>(result);
         }
 
@@ -246,7 +217,7 @@ namespace SinaService.SinaServiceHelper
             return text;
         }
 
-        public async Task<bool> ShareStatusWithPicture(string text,StorageFile file)
+        public async Task<bool> ShareStatusWithPicture(string text, StorageFile file)
         {
             Windows.Web.Http.HttpClient client = new Windows.Web.Http.HttpClient();
             var fileContent = new HttpStreamContent(await file.OpenAsync(FileAccessMode.Read));

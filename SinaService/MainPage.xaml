@@ -26,56 +26,75 @@
                        FontSize="15"
                        RelativePanel.Below="Logo"/>
         </RelativePanel>
+        
         <ScrollViewer Grid.Row="1" Background="AliceBlue">
-            <StackPanel>
-                <Grid   VerticalAlignment="Top" HorizontalAlignment="Center">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Button Content="Connect to sina" Click="LoginIn" Grid.Column="0" Margin="0,5,10,5"/>
-                    <Button Content="get time line" Click="GetTimeLine" Grid.Column="1" Margin="10,5,0,5"/>
-                </Grid>
-                <TextBox Name="Content"/>
-                <StackPanel Orientation="Horizontal"  BorderThickness="2" BorderBrush="HotPink">
-                    <Image Name="Image1" Width="50" Height="50" Margin="5" Source="{Binding}"/>
-                    <Image Name="Image2" Width="50" Height="50" Margin="5"/>
-                    <Image Name="Image3" Width="50" Height="50" Margin="5"/>
-                </StackPanel>
-                <Grid   VerticalAlignment="Top" HorizontalAlignment="Center">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Button  Content="Share" Click="Share" HorizontalAlignment="Center" Margin="0,5,0,5"/>
-                    <Button Content="Share with picture" Click="Share_with_picture" Grid.Column="1" Margin="10,5,0,5"/>
-                </Grid>
-                
-                <ListView Name="StatusListView"
+            <RelativePanel>
+                <StackPanel Width="{Binding ActualWidth,ElementName=RootGrid}">
+                    <Grid Name="AppInfo" BorderBrush="Blue" BorderThickness="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="App Key"  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBox  Grid.Column="1" Name="Key" Margin="5"/>
+                        <TextBlock Text="App Secret" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBox  Grid.Column="1" Grid.Row="1" Name="Secret" Margin="5"/>
+                        <TextBlock Text="Callback Site"  Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBox  Grid.Column="1" Grid.Row="2" Name="Callback" Margin="5"/>
+                    </Grid>
+                    <Grid   VerticalAlignment="Top" HorizontalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Content="Connect to sina" Click="LoginIn" Grid.Column="0" Margin="0,5,10,5"/>
+                        <Button Content="get time line" Click="GetTimeLine" Grid.Column="1" Margin="10,5,0,5"/>
+                    </Grid>
+                    <TextBox Name="Content"/>
+                    <Image Name="Image1" Width="80" Height="60" Margin="5" Source="{Binding}" />
+
+                    <Grid   VerticalAlignment="Top" HorizontalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button  Content="Share" Click="Share" HorizontalAlignment="Center" Margin="0,5,0,5"/>
+                        <Button Content="Share with picture" Click="Share_with_picture" Grid.Column="1" Margin="10,5,0,5"/>
+                    </Grid>
+
+                    <ListView Name="StatusListView"
                       ItemsSource="{Binding}">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <RelativePanel>
-                                <Image Source="{Binding thumbnail_pic}"
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <RelativePanel>
+                                    <Image Source="{Binding thumbnail_pic}"
                                        HorizontalAlignment="Left"
                                        Name="Image"
                                        Width="80"
                                        Height="60"
                                        Margin="10"/>
-                                <TextBlock Text="{Binding text}"
+                                    <TextBlock Text="{Binding text}"
                                            Name="text"
                                            Margin="10"
                                            RelativePanel.RightOf="Image"
                                            RelativePanel.AlignTopWith="Image"/>
-                                <TextBlock Text="{Binding created_at}"
+                                    <TextBlock Text="{Binding created_at}"
                                            RelativePanel.Below="text"
                                            TextWrapping="Wrap"
                                            RelativePanel.RightOf="Image"/>
-                            </RelativePanel>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </StackPanel>
+                                </RelativePanel>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </StackPanel>
+                
+            </RelativePanel>
         </ScrollViewer>
+        <ProgressRing Name="ring" Grid.Row="1" Width="80" Height="80" Margin="0,50,0,0"/>
     </Grid>
 </Page>
