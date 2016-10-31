@@ -119,7 +119,6 @@ namespace SinaService.SinaServiceHelper
                 var response = await client.PostAsync(url, content);
                 if (response.IsSuccessStatusCode)
                 {
-
                     var responseString = await response.Content.ReadAsStringAsync();
                     string respnseResult = FixInvalidCharset(responseString);
                     string access_token = ExtractMessageFromResponse(respnseResult, "access_token");

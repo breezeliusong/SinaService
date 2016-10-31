@@ -45,6 +45,7 @@ namespace SinaService
             this.InitializeComponent();
         }
 
+        //login in sina
         private async void LoginIn(object sender, RoutedEventArgs e)
         {
             ring.Visibility = Visibility.Visible;
@@ -63,7 +64,7 @@ namespace SinaService
                 return;
             }
 
-            //TODO 获取用户信息
+            //get user info
             var user = await SinaServiceHelper.SinaService.Instance.GetUserAsync();
             if (user == null)
             {
@@ -77,6 +78,7 @@ namespace SinaService
 
         }
 
+        //get user status
         private async void GetTimeLine(object sender, RoutedEventArgs e)
         {
             ring.Visibility = Visibility.Visible;
@@ -98,6 +100,7 @@ namespace SinaService
         }
 
         //分享一条微博
+        //share a weibo
         private async void Share(object sender, RoutedEventArgs e)
         {
             ring.Visibility = Visibility.Visible;
@@ -119,6 +122,7 @@ namespace SinaService
         }
 
         //分享一条带图片的微博
+        //share a weibo with a picture
         private async void Share_with_picture(object sender, RoutedEventArgs e)
         {
             FileOpenPicker openPicker = new FileOpenPicker();
