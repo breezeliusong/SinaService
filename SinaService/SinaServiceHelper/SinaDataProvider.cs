@@ -127,6 +127,8 @@ namespace SinaService.SinaServiceHelper
 
                     tokens.AccessToken = access_token;
                     tokens.uid = uid;
+                    //expires_in time
+                    tokens.expires_in = expires_in;
 
                     ApplicationData.Current.LocalSettings.Values["access_token"] = access_token;
                     ApplicationData.Current.LocalSettings.Values["SinaUid"] = uid;//2962219841

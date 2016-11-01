@@ -54,8 +54,8 @@ namespace SinaService
             {
                 return;
             }
-            
-            SinaServiceHelper.SinaService.Instance.Initialize(Key.Text, Secret.Text,Callback.Text);
+
+            SinaServiceHelper.SinaService.Instance.Initialize(Key.Text, Secret.Text, Callback.Text);
 
             if (!await SinaServiceHelper.SinaService.Instance.LoginAsync())
             {
@@ -91,12 +91,20 @@ namespace SinaService
             List<Status> statusList = UserStatus.statuses;
             ObservableCollection<Status> status = new ObservableCollection<Status>();
             status.Clear();
-            foreach (Status st in statusList)
+            try
             {
-                status.Add(st);
+                foreach (Status st in statusList)
+                {
+                    status.Add(st);
+                }
+                ring.Visibility = Visibility.Collapsed;
+                StatusListView.DataContext = status;
+
             }
-            ring.Visibility = Visibility.Collapsed;
-            StatusListView.DataContext = status;
+            catch (Exception)
+            {
+               await new MessageDialog("there is no statu").ShowAsync();
+            }
         }
 
         //分享一条微博
@@ -162,6 +170,12 @@ namespace SinaService
                 await new MessageDialog("you should say something and add a picture").ShowAsync();
             }
 
+        }
+
+        private void ClearSettings(object sender, RoutedEventArgs e)
+        {
+           var settings= ApplicationData.Current.LocalSettings;
+            settings.Values.Clear();
         }
     }
 }
