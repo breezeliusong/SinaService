@@ -48,6 +48,7 @@ namespace SinaService.SinaServiceHelper
         public async Task<bool> LoginAsync()
         {
             //非第一次获取token，直接将第一次授权获取存储到本地的token传入
+            //if have got token ,using the data saved in local
             if (settings.Values["app_key"]!=null )
             {
                 if (settings.Values["app_key"].ToString() == tokens.AppKey&&settings.Values["access_token"] != null)
@@ -61,7 +62,7 @@ namespace SinaService.SinaServiceHelper
 
 
             var sinaUrl = "https://api.weibo.com/oauth2/authorize";
-            sinaUrl += "?" + "client_id=" + tokens.AppKey + "&redirect_uri=" + Uri.EscapeDataString(tokens.CallbackUri) + "&forcelogin=true";
+            sinaUrl += "?" + "client_id=" + tokens.AppKey + "&redirect_uri=" + Uri.EscapeDataString(tokens.CallbackUri) ;
             Uri sinaUri = new Uri(sinaUrl);
             WebAuthenticationResult result = await WebAuthenticationBroker.AuthenticateAsync(WebAuthenticationOptions.None, sinaUri, new Uri(tokens.CallbackUri));
 
@@ -89,6 +90,7 @@ namespace SinaService.SinaServiceHelper
 
         /// <summary>
         /// 获取Access_token
+        /// get access_token using code
         /// </summary>
         /// <param name="result"></param>
         /// <returns></returns>
@@ -144,6 +146,7 @@ namespace SinaService.SinaServiceHelper
         }
 
         //发布一条微博（无图片）
+        //share a weibo(none picture)
         public async Task<bool> ShareStatusAsync(string text)
         {
             bool result = false;
@@ -162,14 +165,16 @@ namespace SinaService.SinaServiceHelper
         }
 
         //获取用户状态
+        //get user status
         public async Task<UserStatus> GetUserTimeLineAsync()
         {
             string url = "https://api.weibo.com/2/statuses/user_timeline.json?access_token=" + tokens.AccessToken;
-            var status = await getMessage<UserStatus>(url);
-            return status;
+            string result = await HttpRequest.SendGetRequest(url);
+            return JsonConvert.DeserializeObject<UserStatus>(result);
         }
 
         //获取用户信息
+        //get user info
         public async Task<SinaUser> GetUserAsync(string uid = null)
         {
             var UserUid = uid ?? tokens.uid;
@@ -178,14 +183,15 @@ namespace SinaService.SinaServiceHelper
             return JsonConvert.DeserializeObject<SinaUser>(result);
         }
 
-        private async Task<T> getMessage<T>(string url)
-        {
-            string result = await HttpRequest.SendGetRequest(url);
-            Debug.Write(result);
-            return JsonConvert.DeserializeObject<T>(result);
-        }
+        //private async Task<T> getMessage<T>(string url)
+        //{
+        //    string result = await HttpRequest.SendGetRequest(url);
+        //    Debug.Write(result);
+        //    return JsonConvert.DeserializeObject<T>(result);
+        //}
 
         //获取需要的字符串
+        //extract message
         private string ExtractMessageFromResponse(string response, string message)
         {
             if (response != null)
@@ -200,6 +206,7 @@ namespace SinaService.SinaServiceHelper
         }
 
         //去除无效的符号
+        //fix the invalide charset
         private string FixInvalidCharset(string text)
         {
             // Fix invalid charset returned by some web sites.
@@ -218,12 +225,15 @@ namespace SinaService.SinaServiceHelper
             return text;
         }
 
+
+        //using Windows.Web.Http.HttpClient 
         public async Task<bool> ShareStatusWithPicture(string text, StorageFile file)
         {
             Windows.Web.Http.HttpClient client = new Windows.Web.Http.HttpClient();
             var fileContent = new HttpStreamContent(await file.OpenAsync(FileAccessMode.Read));
             fileContent.Headers.Add("Content-Type", "multipart/form-data");
             Debug.Write(fileContent.Headers.ContentType.ToString());
+
             var content = new HttpMultipartFormDataContent();
             Uri uri = new Uri("https://upload.api.weibo.com/2/statuses/upload.json");
             content.Add(fileContent, "pic", file.Name);

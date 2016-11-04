@@ -13,6 +13,7 @@ namespace SinaService.SinaServiceHelper
     {
         /// <summary>
         /// 向服务器发送get请求  返回服务器回复数据(string)
+        /// send get request and get the response
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
@@ -27,17 +28,19 @@ namespace SinaService.SinaServiceHelper
                 HttpResponseMessage response = await client.GetAsync(uri);
                 bool stat = response.IsSuccessStatusCode;
                 //response.EnsureSuccessStatusCode();
-
+                client.Dispose();
                 return await response.Content.ReadAsStringAsync();
             }
             catch
             {
                 return null;
             }
+
         }
 
         /// <summary>
         /// 向服务器发送get请求  返回服务器回复数据(bytes)
+        /// send get request
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
@@ -60,6 +63,7 @@ namespace SinaService.SinaServiceHelper
         }
         /// <summary>
         /// 向服务器发送post请求 返回服务器回复数据(string)
+        /// sent post request
         /// </summary>
         /// <param name="url"></param>
         /// <param name="body"></param>

@@ -103,6 +103,7 @@ namespace SinaService.SinaServiceHelper
         }
 
         //获取用户信息
+        //get user info
         public async Task<SinaUser> GetUserAsync(string uid=null)
         {
             if (Provider.LoggedIn)
@@ -118,6 +119,7 @@ namespace SinaService.SinaServiceHelper
         }
 
         //获得用户发布的状态
+        //get user status
         public async Task<UserStatus> GetUserTimeLineAsync()
         {
             if (Provider.LoggedIn)
