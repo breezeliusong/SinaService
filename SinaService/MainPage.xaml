@@ -28,7 +28,6 @@
         </RelativePanel>
         
         <ScrollViewer Grid.Row="1" Background="AliceBlue">
-            <RelativePanel>
                 <StackPanel Width="{Binding ActualWidth,ElementName=RootGrid}">
                     <Grid Name="AppInfo" BorderBrush="Blue" BorderThickness="1">
                         <Grid.RowDefinitions>
@@ -94,8 +93,6 @@
                         </ListView.ItemTemplate>
                     </ListView>
                 </StackPanel>
-                
-            </RelativePanel>
         </ScrollViewer>
         <ProgressRing Name="ring" Grid.Row="1" Width="80" Height="80" Margin="0,50,0,0"/>
     </Grid>
