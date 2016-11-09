@@ -54,7 +54,7 @@
                         </Grid.ColumnDefinitions>
                         <Button Content="Connect" Click="LoginIn" Grid.Column="0" Margin="0,5,10,5"/>
                         <Button Content="get status" Click="GetTimeLine" Grid.Column="1" Margin="10,5,0,5"/>
-                        <Button Content="Clear" Grid.Column="2" Click="ClearSettings" Margin="10,5,0,5"/>
+                        <Button Content="Clear" Name="Clean" Grid.Column="2" Click="ClearSettings" Margin="10,5,0,5"/>
                     </Grid>
                     <TextBox Name="Content"/>
                     <Image Name="Image1" Width="80" Height="60" Margin="5" Source="{Binding}" />

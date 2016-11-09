@@ -45,6 +45,7 @@ namespace SinaService
             this.InitializeComponent();
         }
 
+        //登陆新浪（包含OAuth授权）
         //login in sina
         private async void LoginIn(object sender, RoutedEventArgs e)
         {
@@ -78,6 +79,7 @@ namespace SinaService
 
         }
 
+        //获取用户的状态
         //get user status
         private async void GetTimeLine(object sender, RoutedEventArgs e)
         {
@@ -172,10 +174,11 @@ namespace SinaService
 
         }
 
+        // 清除本地记录
+        //clear data in localsetting
         private void ClearSettings(object sender, RoutedEventArgs e)
         {
-           var settings= ApplicationData.Current.LocalSettings;
-            settings.Values.Clear();
+            SinaServiceHelper.SinaService.Instance.clear();
         }
     }
 }

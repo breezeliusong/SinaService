@@ -32,6 +32,8 @@ namespace SinaService.SinaServiceHelper
 
         public string UserUid { get; set; }
 
+        //记录登录状态
+        //Record the login statu
         public bool LoggedIn { get; private set; }
 
         public SinaDataProvider(SinaOAuthTokens tokens)
@@ -49,9 +51,9 @@ namespace SinaService.SinaServiceHelper
         {
             //非第一次获取token，直接将第一次授权获取存储到本地的token传入
             //if have got token ,using the data saved in local
-            if (settings.Values["app_key"]!=null )
+            if (settings.Values["app_key"] != null)
             {
-                if (settings.Values["app_key"].ToString() == tokens.AppKey&&settings.Values["access_token"] != null)
+                if (settings.Values["app_key"].ToString() == tokens.AppKey && settings.Values["access_token"] != null)
                 {
                     tokens.AccessToken = settings.Values["access_token"].ToString();
                     tokens.uid = ApplicationData.Current.LocalSettings.Values["SinaUid"].ToString();
@@ -62,7 +64,7 @@ namespace SinaService.SinaServiceHelper
 
 
             var sinaUrl = "https://api.weibo.com/oauth2/authorize";
-            sinaUrl += "?" + "client_id=" + tokens.AppKey + "&redirect_uri=" + Uri.EscapeDataString(tokens.CallbackUri) ;
+            sinaUrl += "?" + "client_id=" + tokens.AppKey + "&redirect_uri=" + Uri.EscapeDataString(tokens.CallbackUri);
             Uri sinaUri = new Uri(sinaUrl);
             WebAuthenticationResult result = await WebAuthenticationBroker.AuthenticateAsync(WebAuthenticationOptions.None, sinaUri, new Uri(tokens.CallbackUri));
 
@@ -89,7 +91,7 @@ namespace SinaService.SinaServiceHelper
 
 
         /// <summary>
-        /// 获取Access_token
+        /// 用code获取Access_token
         /// get access_token using code
         /// </summary>
         /// <param name="result"></param>
@@ -225,7 +227,7 @@ namespace SinaService.SinaServiceHelper
             return text;
         }
 
-
+        //分享一条带图片的微博
         //using Windows.Web.Http.HttpClient 
         public async Task<bool> ShareStatusWithPicture(string text, StorageFile file)
         {
@@ -258,6 +260,11 @@ namespace SinaService.SinaServiceHelper
         //response.EnsureSuccessStatusCode();
         //httpClient.Dispose();
         //string sd = response.Content.ReadAsStringAsync().Result;
+
+        public  void clear()
+        {
+            LoggedIn = false;
+        }
 
     }
 }

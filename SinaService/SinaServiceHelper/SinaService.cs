@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.Storage;
 using Windows.Storage.Streams;
+using Windows.UI.Popups;
 
 namespace SinaService.SinaServiceHelper
 {
@@ -60,7 +61,7 @@ namespace SinaService.SinaServiceHelper
 
 
 
-        public bool Initialize(string AppKey,string AppSecret,string callBackUri)
+        public bool Initialize(string AppKey, string AppSecret, string callBackUri)
         {
             if (string.IsNullOrEmpty(AppKey))
             {
@@ -104,11 +105,11 @@ namespace SinaService.SinaServiceHelper
 
         //获取用户信息
         //get user info
-        public async Task<SinaUser> GetUserAsync(string uid=null)
+        public async Task<SinaUser> GetUserAsync(string uid = null)
         {
             if (Provider.LoggedIn)
             {
-            return await Provider.GetUserAsync(tokens.uid);
+                return await Provider.GetUserAsync(tokens.uid);
             }
             var isLoggedIn = await LoginAsync();
             if (isLoggedIn)
@@ -126,7 +127,7 @@ namespace SinaService.SinaServiceHelper
             {
                 return await Provider.GetUserTimeLineAsync();
             }
-            if(await LoginAsync())
+            if (await LoginAsync())
             {
                 return await GetUserTimeLineAsync();
             }
@@ -146,17 +147,30 @@ namespace SinaService.SinaServiceHelper
             return false;
         }
 
-        public async Task<bool> ShareStatusWithPicture(string text,StorageFile file)
+        public async Task<bool> ShareStatusWithPicture(string text, StorageFile file)
         {
             if (Provider.LoggedIn)
             {
-                return await Provider.ShareStatusWithPicture(text,file);
+                return await Provider.ShareStatusWithPicture(text, file);
             }
             if (await LoginAsync())
             {
-                return await ShareStatusWithPicture(text,file);
+                return await ShareStatusWithPicture(text, file);
             }
             return false;
+        }
+
+        //重置应用
+        public void clear()
+        {
+            
+            var settings = ApplicationData.Current.LocalSettings;
+            settings.Values.Clear();
+
+            if (isInitialized)
+            {
+                Provider.clear();
+            }
         }
     }
 }
